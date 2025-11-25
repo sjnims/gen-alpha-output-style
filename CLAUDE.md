@@ -20,12 +20,18 @@ plugins/gen-alpha-output-style/  # The actual plugin
     └── references/              # Glossary and examples
 ```
 
-## How the Plugin Works
+## Architecture
 
-1. **SessionStart hook** triggers `load-style.sh` at session start
-2. **load-style.sh** reads user settings from `.claude/gen-alpha-output-style.local.md` (if exists)
-3. Script outputs intensity-appropriate prompt instructions to Claude's context
-4. Default intensity is "full" if no settings file exists
+**Two-tier structure:**
+
+1. **Marketplace level** (`.claude-plugin/marketplace.json`) - Registers the repo as a marketplace that can contain multiple plugins
+2. **Plugin level** (`plugins/gen-alpha-output-style/.claude-plugin/plugin.json`) - Individual plugin manifest
+
+**Plugin mechanism:** The SessionStart hook runs `load-style.sh` which:
+
+1. Reads user settings from `.claude/gen-alpha-output-style.local.md` (if exists)
+2. Checks `enabled` flag (exits silently if `false`)
+3. Outputs intensity-appropriate prompt instructions to Claude's context
 
 ## Development Commands
 
@@ -33,21 +39,21 @@ plugins/gen-alpha-output-style/  # The actual plugin
 # Lint markdown files
 markdownlint "**/*.md"
 
-# Test plugin locally
+# Test plugin locally (loads from local directory)
 claude --plugin-dir ./plugins/gen-alpha-output-style
 
-# Test the hook script directly
+# Test the hook script directly (outputs prompt text)
 bash ./plugins/gen-alpha-output-style/hooks/load-style.sh
+
+# Test with specific intensity (create temp settings first)
+mkdir -p .claude && echo -e "---\nenabled: true\nintensity: light\n---" > .claude/gen-alpha-output-style.local.md
+bash ./plugins/gen-alpha-output-style/hooks/load-style.sh
+rm .claude/gen-alpha-output-style.local.md
 ```
 
 ## Key Configuration
 
-- **Markdownlint**: MD013 (line length) and MD060 (table style) are disabled in `.markdownlint.json`
-- **User settings**: Read from `.claude/gen-alpha-output-style.local.md` with YAML frontmatter (`enabled`, `intensity`)
+- **Markdownlint**: MD013 (line length) and MD060 (table style) disabled in `.markdownlint.json`
+- **User settings**: `.claude/gen-alpha-output-style.local.md` with YAML frontmatter (`enabled`, `intensity`)
 - **Intensity levels**: `light`, `moderate`, `full` (default)
-
-## Plugin Components
-
-- **Hooks**: Use `${CLAUDE_PLUGIN_ROOT}` for portable paths in hooks.json
-- **Skills**: SKILL.md uses YAML frontmatter with `name`, `description`, `version`
-- **Settings pattern**: `.local.md` files with YAML frontmatter parsed via `sed`
+- **Hook paths**: Use `${CLAUDE_PLUGIN_ROOT}` for portable paths in hooks.json
