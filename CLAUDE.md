@@ -57,3 +57,10 @@ rm .claude/gen-alpha-output-style.local.md
 - **User settings**: `.claude/gen-alpha-output-style.local.md` with YAML frontmatter (`enabled`, `intensity`)
 - **Intensity levels**: `light`, `moderate`, `full` (default)
 - **Hook paths**: Use `${CLAUDE_PLUGIN_ROOT}` for portable paths in hooks.json
+
+## GitHub Configuration
+
+- **Labels**: Defined in `.github/labels.json`, auto-synced via workflow on changes
+- **Issue templates**: Bug report, feature request, new slang suggestion (`.github/ISSUE_TEMPLATE/`)
+- **PR template**: `.github/PULL_REQUEST_TEMPLATE.md`
+- **Discussions**: Enabled for questions and general discussion
