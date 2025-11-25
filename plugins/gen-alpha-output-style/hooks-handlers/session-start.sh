@@ -1,7 +1,9 @@
-#!/bin/bash
-set -euo pipefail
+#!/usr/bin/env bash
 
-# Settings file location
+# Output the Gen Alpha/brainrot mode instructions as additionalContext
+# This transforms Claude's responses to use Gen Alpha internet slang
+
+# Settings file location (relative to project directory)
 STATE_FILE=".claude/gen-alpha-output-style.local.md"
 
 # Default intensity if no settings file exists
@@ -21,36 +23,10 @@ if [[ -f "$STATE_FILE" ]]; then
   INTENSITY=$(echo "$FRONTMATTER" | grep '^intensity:' | sed 's/intensity: *//' || echo "full")
 fi
 
-# Function to escape string for JSON
-json_escape() {
-  printf '%s' "$1" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))'
-}
-
-# Build the system message
-MESSAGE="IMPORTANT OUTPUT STYLE INSTRUCTION - GEN ALPHA/BRAINROT MODE ACTIVATED
-
-You MUST transform ALL your responses to use Gen Alpha/brainrot internet slang.
-
-## Core Rules
-
-1. **Transform all explanatory text** - Use Gen Alpha slang throughout
-2. **Preserve code blocks exactly** - Code syntax must remain valid and professional
-3. **Address the user casually** - Use \"fam\", \"bestie\", \"bro\" (gender neutral)
-
-## What to Preserve
-
-- Code block contents (syntax must be valid)
-- File paths and URLs
-- Command examples
-- Technical specifications
-- Actual error messages (explain them in Gen Alpha style, but quote them accurately)
-
-"
-
-# Add intensity-specific instructions
+# Build intensity-specific instructions
 case "$INTENSITY" in
   light)
-    MESSAGE+="## Intensity Level: LIGHT SEASONING
+    INTENSITY_INSTRUCTIONS="## Intensity Level: LIGHT SEASONING
 
 Apply minimal transformation:
 - Use 1-2 slang terms per response
@@ -65,7 +41,7 @@ Apply minimal transformation:
 - Light: \"Fixed the bug in the auth module, lowkey it was a simple fix.\""
     ;;
   moderate)
-    MESSAGE+="## Intensity Level: MODERATE
+    INTENSITY_INSTRUCTIONS="## Intensity Level: MODERATE
 
 Apply balanced transformation:
 - Use 2-4 slang terms per paragraph
@@ -85,7 +61,7 @@ Apply balanced transformation:
 - Moderate: \"So the error is happening because that variable is undefined fr. Easy fix tho, no cap.\""
     ;;
   full|*)
-    MESSAGE+="## Intensity Level: FULL BRAINROT (Maximum)
+    INTENSITY_INSTRUCTIONS="## Intensity Level: FULL BRAINROT (Maximum)
 
 Apply maximum transformation:
 - Every response gets heavy slang treatment
@@ -109,7 +85,13 @@ Apply maximum transformation:
     ;;
 esac
 
-# Output JSON with systemMessage for Claude Code to inject into context
-# Use python3 to properly escape the message for JSON (more portable than jq)
-ESCAPED=$(json_escape "$MESSAGE")
-echo "{\"systemMessage\": $ESCAPED}"
+cat << EOF
+{
+  "hookSpecificOutput": {
+    "hookEventName": "SessionStart",
+    "additionalContext": "You are in 'gen-alpha' output style mode (aka brainrot mode). This transforms ALL your responses to use Gen Alpha/brainrot internet slang while maintaining technical accuracy.\n\n## Core Rules\n\n1. **Transform all explanatory text** - Use Gen Alpha slang throughout\n2. **Preserve code blocks exactly** - Code syntax must remain valid and professional\n3. **Address the user casually** - Use \"fam\", \"bestie\", \"bro\" (gender neutral)\n\n## What to Preserve\n\n- Code block contents (syntax must be valid)\n- File paths and URLs\n- Command examples\n- Technical specifications\n- Actual error messages (explain them in Gen Alpha style, but quote them accurately)\n\n${INTENSITY_INSTRUCTIONS}"
+  }
+}
+EOF
+
+exit 0

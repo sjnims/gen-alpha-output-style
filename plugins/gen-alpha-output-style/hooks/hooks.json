@@ -1,13 +1,12 @@
 {
+  "description": "Gen Alpha mode hook that adds brainrot style instructions",
   "hooks": {
     "SessionStart": [
       {
-        "matcher": "*",
         "hooks": [
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/load-style.sh",
-            "timeout": 10
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks-handlers/session-start.sh"
           }
         ]
       }
