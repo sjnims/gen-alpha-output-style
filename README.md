@@ -1,6 +1,7 @@
 # Gen Alpha Output Style - Claude Code Plugin Marketplace
 
 <!-- Legitimate badges -->
+[![Mentioned in Awesome Claude Code](https://awesome.re/mentioned-badge.svg)](https://github.com/hesreallyhim/awesome-claude-code)
 ![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
 ![Version](https://img.shields.io/badge/version-0.1.0-green.svg)
 ![Claude Code Plugin](https://img.shields.io/badge/Claude_Code-Plugin-blueviolet.svg)
