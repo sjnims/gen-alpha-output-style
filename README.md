@@ -21,7 +21,7 @@ No cap, this marketplace contains a plugin that transforms Claude's responses to
 In Claude Code, run:
 
 ```text
-/plugin add sjnims/gen-alpha-output-style
+/plugin marketplace add sjnims/gen-alpha-output-style
 ```
 
 Then follow the interactive prompts to select and enable the `gen-alpha-output-style` plugin. Start a new session and the style activates automatically.
