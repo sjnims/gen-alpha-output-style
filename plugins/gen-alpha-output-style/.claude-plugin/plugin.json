@@ -1,0 +1,20 @@
+{
+  "name": "gen-alpha-output-style",
+  "version": "0.1.0",
+  "description": "Transforms Claude's responses to use Gen Alpha/brainrot internet slang. No cap, this plugin hits different fr fr.",
+  "author": {
+    "name": "Steve Nims",
+    "email": "sjnims@gmail.com",
+    "url": "https://github.com/sjnims"
+  },
+  "homepage": "https://github.com/sjnims/gen-alpha-output-style",
+  "repository": "https://github.com/sjnims/gen-alpha-output-style",
+  "license": "MIT",
+  "keywords": [
+    "output-style",
+    "gen-alpha",
+    "brainrot",
+    "slang",
+    "meme"
+  ]
+}

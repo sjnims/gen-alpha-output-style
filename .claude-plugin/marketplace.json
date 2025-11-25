@@ -1,0 +1,33 @@
+{
+  "name": "gen-alpha-output-style-marketplace",
+  "owner": {
+    "name": "Steve Nims",
+    "url": "https://github.com/sjnims"
+  },
+  "metadata": {
+    "description": "A Claude Code plugin marketplace that transforms responses into Gen Alpha/brainrot internet slang",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "gen-alpha-output-style",
+      "description": "Transforms all Claude responses to use Gen Alpha/brainrot slang like 'no cap', 'fr fr', 'bussin', 'skibidi', and more. Code blocks stay clean, explanations get the full brainrot treatment.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Steve Nims",
+        "url": "https://github.com/sjnims",
+        "email": "sjnims@gmail.com"
+      },
+      "homepage": "https://github.com/sjnims/gen-alpha-output-style",
+      "tags": [
+        "gen-alpha",
+        "brainrot",
+        "slang",
+        "meme",
+        "skibidi",
+        "style"
+      ],
+      "source": "./plugins/gen-alpha-output-style"
+    }
+  ]
+}

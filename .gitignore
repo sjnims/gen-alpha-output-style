@@ -1,0 +1,25 @@
+# Claude Code plugin settings (user-specific configuration)
+.claude/*.local.md
+
+# Node modules (if any scripts use Node)
+node_modules/
+
+# Python virtual environments (if any scripts use Python)
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Environment variables
+.env
+.env.local

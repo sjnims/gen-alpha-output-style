@@ -1,0 +1,17 @@
+{
+  "description": "Automatically applies Gen Alpha/brainrot output style to all Claude responses",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/load-style.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}
