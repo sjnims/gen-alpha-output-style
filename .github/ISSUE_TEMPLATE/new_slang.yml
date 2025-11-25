@@ -1,0 +1,69 @@
+name: New Slang Suggestion
+description: Suggest a new Gen Alpha/brainrot term to add
+labels: ["new-slang", "area: glossary"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Got a fire new term that's missing? No cap, we want to hear it!
+
+  - type: input
+    id: term
+    attributes:
+      label: Term
+      description: The slang term to add
+      placeholder: e.g., "slay"
+    validations:
+      required: true
+
+  - type: textarea
+    id: meaning
+    attributes:
+      label: Meaning
+      description: What does this term mean?
+      placeholder: e.g., "To do something exceptionally well, to succeed impressively"
+    validations:
+      required: true
+
+  - type: textarea
+    id: usage
+    attributes:
+      label: Usage Examples
+      description: How would Claude use this in a response?
+      placeholder: |
+        - "You absolutely slayed that refactor"
+        - "This code is about to slay fr fr"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      description: What type of term is this?
+      options:
+        - Exclamation/Reaction
+        - Adjective/Descriptor
+        - Verb/Action
+        - Noun
+        - Phrase/Expression
+        - Filler/Emphasis
+    validations:
+      required: true
+
+  - type: textarea
+    id: source
+    attributes:
+      label: Source/Origin
+      description: Where does this term come from? (optional)
+      placeholder: e.g., TikTok, specific meme, etc.
+
+  - type: checkboxes
+    id: verification
+    attributes:
+      label: Verification
+      options:
+        - label: This term is commonly used in Gen Alpha/internet slang
+          required: true
+        - label: This term is not offensive or inappropriate
+          required: true

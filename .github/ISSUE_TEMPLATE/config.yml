@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Question or Discussion
+    url: https://github.com/sjnims/gen-alpha-output-style/discussions
+    about: Ask questions or start a discussion

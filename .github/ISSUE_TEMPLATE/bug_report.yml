@@ -1,0 +1,62 @@
+name: Bug Report
+description: Report something that isn't working correctly
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug!
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What happened? What did you expect to happen?
+      placeholder: Describe the bug...
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: How can we reproduce this issue?
+      placeholder: |
+        1. Enable the plugin...
+        2. Send a message...
+        3. See error...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: intensity
+    attributes:
+      label: Intensity Level
+      description: What intensity setting are you using?
+      options:
+        - full (default)
+        - moderate
+        - light
+        - Not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Output
+      description: What should the output look like?
+      placeholder: The expected response...
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Output
+      description: What was the actual output?
+      placeholder: The actual response...
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Any other relevant information (Claude Code version, OS, etc.)
