@@ -16,6 +16,8 @@
 
 No cap, this marketplace contains a plugin that transforms Claude's responses to use Gen Alpha/brainrot internet slang. It's giving main character energy fr fr.
 
+<img width="751" height="524" alt="Screenshot 2025-11-24 at 11 58 07 PM" src="https://github.com/user-attachments/assets/439f3784-469b-4d80-9926-aefd62a0357e" />
+
 ## Installation
 
 In Claude Code, run:
