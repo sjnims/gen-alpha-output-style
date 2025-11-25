@@ -17,7 +17,7 @@
 No cap, this marketplace contains a plugin that transforms Claude's responses to use Gen Alpha/brainrot internet slang. It's giving main character energy fr fr.
 
 <p align="center">
-  <img width="751" height="524" alt="Screenshot 2025-11-24 at 11 58 07 PM" src="https://github.com/sjnims/gen-alpha-output-style/raw/main/plugins/gen-alpha-output-style/references/screenshot.png" />
+  <img width="751" height="524" alt="screenshot" src="./screenshot.png" />
 </p>
 
 ## Installation
