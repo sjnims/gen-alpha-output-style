@@ -21,6 +21,11 @@ if [[ -f "$STATE_FILE" ]]; then
   INTENSITY=$(echo "$FRONTMATTER" | grep '^intensity:' | sed 's/intensity: *//' || echo "full")
 fi
 
+# Function to escape string for JSON
+json_escape() {
+  printf '%s' "$1" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))'
+}
+
 # Build the system message
 MESSAGE="IMPORTANT OUTPUT STYLE INSTRUCTION - GEN ALPHA/BRAINROT MODE ACTIVATED
 
@@ -105,5 +110,6 @@ Apply maximum transformation:
 esac
 
 # Output JSON with systemMessage for Claude Code to inject into context
-# Use jq to properly escape the message for JSON
-echo "$MESSAGE" | jq -Rs '{systemMessage: .}'
+# Use python3 to properly escape the message for JSON (more portable than jq)
+ESCAPED=$(json_escape "$MESSAGE")
+echo "{\"systemMessage\": $ESCAPED}"
