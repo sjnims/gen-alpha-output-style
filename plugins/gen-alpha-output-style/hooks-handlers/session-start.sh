@@ -30,14 +30,17 @@ if [[ -f "$STATE_FILE" ]]; then
 fi
 
 # Helper function to escape a string for JSON
-# Escapes backslashes, double quotes, and converts newlines to \n
+# Uses perl for cross-platform compatibility (works on macOS and Linux)
 json_escape() {
-  local input="$1"
-  # Order matters: escape backslashes first, then quotes, then newlines
-  printf '%s' "$input" | \
-    sed 's/\\/\\\\/g' | \
-    sed 's/"/\\"/g' | \
-    sed ':a;N;$!ba;s/\n/\\n/g'
+  # -0777 slurps entire input at once
+  # Order: escape backslashes, then quotes, then newlines
+  # Final substitution removes trailing \n if present
+  printf '%s' "$1" | perl -0777 -pe '
+    s/\\/\\\\/g;
+    s/"/\\"/g;
+    s/\n/\\n/g;
+    s/\\n$//;
+  '
 }
 
 # Build intensity-specific instructions based on user setting
@@ -134,8 +137,7 @@ ${INTENSITY_INSTRUCTIONS}
 # Escape the content for JSON and output the final structure
 ESCAPED_CONTEXT=$(json_escape "$ADDITIONAL_CONTEXT")
 
-# Output valid JSON
-# Note: We use printf to avoid adding a trailing newline that could cause issues
+# Output valid JSON (no trailing newline)
 printf '{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"%s"}}' "$ESCAPED_CONTEXT"
 
 exit 0
