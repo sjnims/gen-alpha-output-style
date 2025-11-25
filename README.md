@@ -24,7 +24,7 @@ In Claude Code, run:
 /plugin add sjnims/gen-alpha-output-style
 ```
 
-That's it. Start a new session and the style activates automatically.
+Then follow the interactive prompts to select and enable the `gen-alpha-output-style` plugin. Start a new session and the style activates automatically.
 
 ## Available Plugins
 
