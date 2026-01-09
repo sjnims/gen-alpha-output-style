@@ -1,0 +1,36 @@
+name: Shell Lint
+
+# Validates shell scripts using ShellCheck
+# Important for this project since the SessionStart hook is a bash script
+
+on:
+  pull_request:
+    paths:
+      - "**/*.sh"
+  push:
+    branches:
+      - main
+    paths:
+      - "**/*.sh"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint Shell Scripts
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38 # v2.0.0
+        with:
+          scandir: './plugins'
+          severity: warning

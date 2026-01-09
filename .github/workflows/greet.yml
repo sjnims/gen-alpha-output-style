@@ -1,0 +1,41 @@
+name: Greet First Time Contributors
+
+on:
+  pull_request_target:
+    types: [opened]
+  issues:
+    types: [opened]
+
+# Group by PR/issue number to prevent overlapping greetings for same item
+# cancel-in-progress: false ensures all first-timers get greeted
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.event.issue.number || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  greeting:
+    # Skip bot accounts to avoid greeting automated tools
+    if: github.actor != 'dependabot[bot]' && github.actor != 'claude[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/first-interaction@34f15e814fe48ac9f2e54aeeb3ef80ce384d4aae # v1.3.0
+        with:
+          issue_message: |
+            👋 Thanks for opening your first issue! We appreciate your contribution to gen-alpha-output-style.
+
+            If you're suggesting **new slang terms**, please use the [New Slang Suggestion](https://github.com/${{ github.repository }}/issues/new?template=new_slang.yml) template to help us organize the request.
+
+            Our maintainers will review this soon. No cap, we appreciate you! 🙏
+          pr_message: |
+            🎉 Thanks for opening your first pull request! We appreciate your contribution to gen-alpha-output-style.
+
+            Please make sure:
+            - [ ] You've filled out the PR template completely
+            - [ ] All markdown is properly linted (`npx markdownlint-cli2 "**/*.md"`)
+            - [ ] Shell scripts pass ShellCheck (`shellcheck plugins/**/*.sh`)
+            - [ ] You've tested the plugin locally with `claude --plugin-dir ./plugins/gen-alpha-output-style`
+
+            A maintainer will review your PR soon. That's lowkey fire that you're contributing fr fr! 🔥

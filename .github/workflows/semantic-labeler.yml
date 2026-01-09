@@ -1,0 +1,177 @@
+name: Semantic Labeler
+
+# Claude-powered semantic labeling for both issues and PRs
+# Customized for gen-alpha-output-style plugin labels
+
+on:
+  issues:
+    types: [opened, edited]
+  pull_request:
+    types: [opened, synchronize, edited]
+
+# Cancel in-progress runs on subsequent triggers
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.issue.number || github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  label-issue:
+    name: Label Issue
+    # Skip bot-created issues to prevent potential loops
+    if: |
+      github.event_name == 'issues' &&
+      github.actor != 'dependabot[bot]' &&
+      github.actor != 'claude[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+      id-token: write
+      actions: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 1
+
+      - name: Label issue with Claude
+        uses: anthropics/claude-code-action@1b8ee3b94104046d71fde52ec3557651ad8c0d71 # v1.0.29
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            Analyze this GitHub issue and apply appropriate labels.
+
+            ## Issue Details
+            - Repository: ${{ github.repository }}
+            - Issue #${{ github.event.issue.number }}
+            - Title: ${{ github.event.issue.title }}
+            - Author: ${{ github.event.issue.user.login }}
+
+            ## Issue Body
+            ${{ github.event.issue.body }}
+
+            ## Instructions
+
+            Based on the issue content, determine and apply appropriate labels using `gh issue edit`.
+
+            ### Label Categories
+
+            **TYPE (choose ONE):**
+            - `bug` - Something isn't working correctly
+            - `enhancement` - New feature or improvement request
+            - `documentation` - Documentation improvements or additions
+            - `question` - Asking for help or clarification
+            - `refactor` - Code restructuring without behavior change
+            - `chore` - Maintenance tasks (dependencies, CI, etc.)
+
+            **AREA (choose ALL that apply based on what the issue discusses):**
+            - `area: glossary` - Related to slang terms and glossary (new words, definitions, corrections)
+            - `area: hook` - Related to hook scripts (SessionStart, shell script issues)
+            - `area: skill` - Related to skills and transformation rules (SKILL.md, intensity levels)
+
+            **PRIORITY (choose ONE based on impact/urgency):**
+            - `priority: high` - Blocking, security issues, or major functionality broken
+            - `priority: medium` - Moderate impact, normal priority
+            - `priority: low` - Minor issues, nice to have
+
+            **SPECIAL (only if applicable):**
+            - `new-slang` - Suggestion for new slang term (if issue is about adding new slang)
+            - `good first issue` - Simple, well-documented, good for newcomers
+            - `help wanted` - Could use community contribution
+
+            ### Rules
+            1. Always apply exactly ONE type label
+            2. Always apply exactly ONE priority label
+            3. Apply area labels only if clearly related to that component
+            4. Apply `new-slang` if the issue is specifically about adding new Gen Alpha slang
+            5. Don't guess - if unsure about a category, skip it (except required ones)
+
+            ### Execution
+            Apply labels using:
+            ```bash
+            gh issue edit ${{ github.event.issue.number }} --add-label "label1,label2,label3"
+            ```
+
+            After applying labels, briefly explain your reasoning.
+          claude_args: |
+            --allowedTools "Bash(gh issue:*)"
+
+  label-pr:
+    name: Label Pull Request
+    if: |
+      github.event_name == 'pull_request' &&
+      github.actor != 'dependabot[bot]' &&
+      github.actor != 'claude[bot]' &&
+      github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write
+      id-token: write
+      actions: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 1
+
+      - name: Label PR with Claude
+        uses: anthropics/claude-code-action@1b8ee3b94104046d71fde52ec3557651ad8c0d71 # v1.0.29
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            Analyze this pull request and apply appropriate labels.
+
+            ## PR Details
+            - Repository: ${{ github.repository }}
+            - PR #${{ github.event.pull_request.number }}
+            - Title: ${{ github.event.pull_request.title }}
+            - Author: ${{ github.event.pull_request.user.login }}
+
+            ## PR Description
+            ${{ github.event.pull_request.body }}
+
+            ## Instructions
+
+            1. First, get the PR diff to understand what changed:
+               ```bash
+               gh pr diff ${{ github.event.pull_request.number }}
+               ```
+
+            2. Analyze the changes and apply appropriate labels.
+
+            ### Label Categories
+
+            **TYPE (choose ONE based on the nature of changes):**
+            - `enhancement` - New feature or capability
+            - `bug` - Bug fix
+            - `documentation` - Documentation-only changes
+            - `refactor` - Code restructuring without behavior change
+            - `chore` - Maintenance (dependencies, CI config, tooling)
+
+            **AREA (choose ALL that apply based on files changed):**
+            - `area: glossary` - Changes to `**/glossary.md` or slang-related content
+            - `area: hook` - Changes to `**/hooks/**` or `**/hooks-handlers/**`
+            - `area: skill` - Changes to `**/skills/**`
+
+            **SPECIAL (only if applicable):**
+            - `new-slang` - Adds new Gen Alpha slang terms
+
+            ### Rules
+            1. Always apply exactly ONE type label
+            2. Apply area labels based on actual files changed
+            3. Apply `new-slang` if the PR adds new terms to glossary.md or examples
+            4. For type, infer from the PR title/description and nature of changes
+
+            ### Execution
+            Apply labels using:
+            ```bash
+            gh pr edit ${{ github.event.pull_request.number }} --add-label "label1,label2,label3"
+            ```
+
+            After applying labels, briefly explain your reasoning.
+          # PR job needs Read,Glob to analyze file changes for accurate area detection
+          claude_args: |
+            --allowedTools "Bash(gh pr:*),Read,Glob"

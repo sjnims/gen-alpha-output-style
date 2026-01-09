@@ -95,6 +95,26 @@
     "color": "c5def5"
   },
   {
+    "name": "pinned",
+    "description": "Pinned issue - exempt from stale bot",
+    "color": "006b75"
+  },
+  {
+    "name": "roadmap",
+    "description": "Part of the project roadmap",
+    "color": "006b75"
+  },
+  {
+    "name": "security",
+    "description": "Security-related issue",
+    "color": "d93f0b"
+  },
+  {
+    "name": "stale",
+    "description": "Automatically marked as stale due to inactivity",
+    "color": "ededed"
+  },
+  {
     "name": "wontfix",
     "description": "This will not be worked on",
     "color": "ffffff"

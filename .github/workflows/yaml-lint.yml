@@ -1,0 +1,36 @@
+name: YAML Lint
+
+# Validates YAML configuration files using yamllint
+# Config: .yamllint.yml (2-space indent, no line length limit)
+# Triggers on YAML file changes
+
+on:
+  pull_request:
+    paths:
+      - "**/*.yml"
+      - "**/*.yaml"
+  push:
+    branches:
+      - main
+    paths:
+      - "**/*.yml"
+      - "**/*.yaml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint YAML Files
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Run yamllint
+        run: pipx run yamllint==1.37.1 -c .yamllint.yml .

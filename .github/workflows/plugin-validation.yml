@@ -1,0 +1,209 @@
+name: Plugin Structure Validation
+
+# Validates the gen-alpha-output-style plugin structure and configuration
+# Ensures manifests, hooks, and skills follow correct patterns
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review]
+    paths:
+      - "plugins/gen-alpha-output-style/**"
+      - ".claude-plugin/**"
+
+# Cancel any in-progress validation for the same PR when new commits are pushed
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    # Skip bots and draft PRs
+    if: |
+      github.actor != 'dependabot[bot]' &&
+      github.actor != 'claude[bot]' &&
+      github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write  # Recommended by claude-code-action docs for full functionality
+      id-token: write
+      actions: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Get changed plugin files
+        id: changed-files
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Get list of changed files in this PR, filtered to plugin components
+          changed_files=$(gh pr diff ${{ github.event.pull_request.number }} --name-only | \
+            grep -E '^(plugins/gen-alpha-output-style/|\.claude-plugin/)' | \
+            while read -r file; do [ -f "$file" ] && echo "$file"; done || true)
+
+          if [ -z "$changed_files" ]; then
+            echo "No plugin files changed"
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Changed plugin files:"
+            echo "$changed_files"
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+            # Store as newline-separated list for the prompt
+            {
+              echo "files<<EOF"
+              echo "$changed_files"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Validate plugin structure
+        if: steps.changed-files.outputs.has_changes == 'true'
+        uses: anthropics/claude-code-action@1b8ee3b94104046d71fde52ec3557651ad8c0d71 # v1.0.29
+        id: validate
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            Validate ONLY the changed plugin files listed below.
+
+            ## Context
+            - Repository: ${{ github.repository }}
+            - PR #${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }}
+
+            ## Changed Files to Validate
+            ```
+            ${{ steps.changed-files.outputs.files }}
+            ```
+
+            **IMPORTANT**: Only validate the files listed above. Do NOT validate other files in the plugin directories.
+
+            ## Instructions
+
+            1. Read and validate ONLY the changed files listed above
+            2. Return structured JSON with validation results
+
+            ## Validation Rules
+
+            ### Marketplace Manifest (`.claude-plugin/marketplace.json`)
+
+            If changed, verify:
+            - [ ] File is valid JSON
+            - [ ] Has `name`, `description`, `plugins` fields
+            - [ ] `plugins` array has valid plugin references with `path` and `name`
+
+            ### Plugin Manifest (`plugins/gen-alpha-output-style/.claude-plugin/plugin.json`)
+
+            If changed, verify:
+            - [ ] File is valid JSON
+            - [ ] Has required fields: `name`, `description`, `version`
+            - [ ] Version follows semver pattern (X.Y.Z)
+            - [ ] Paths use `${CLAUDE_PLUGIN_ROOT}` for portability
+
+            ### Hooks Configuration (`plugins/gen-alpha-output-style/hooks/hooks.json`)
+
+            If changed, verify:
+            - [ ] File is valid JSON
+            - [ ] Event type is valid: `SessionStart`
+            - [ ] Hook has `type: "command"` and valid `command` path
+            - [ ] Command path uses `${CLAUDE_PLUGIN_ROOT}`
+
+            ### Hook Handler Script (`plugins/gen-alpha-output-style/hooks-handlers/session-start.sh`)
+
+            If changed, verify:
+            - [ ] Script has shebang (`#!/usr/bin/env bash`)
+            - [ ] Uses `set -euo pipefail` for safety
+            - [ ] Outputs valid JSON with `hookSpecificOutput` structure
+            - [ ] Handles missing settings file gracefully
+
+            ### Skill File (`plugins/gen-alpha-output-style/skills/gen-alpha-style/SKILL.md`)
+
+            If changed, verify:
+            - [ ] Has YAML frontmatter with `name`, `description` fields
+            - [ ] Description uses third-person with trigger phrases
+            - [ ] Body contains transformation rules and examples
+
+            ### Glossary/References (`plugins/gen-alpha-output-style/skills/gen-alpha-style/references/*.md`)
+
+            If changed, verify:
+            - [ ] Markdown is valid
+            - [ ] Glossary entries have consistent format (term, meaning, example)
+
+            ## Output Format
+
+            Return ONLY valid JSON matching this schema:
+            ```json
+            {
+              "manifests_valid": true/false,
+              "manifests_issues": ["issue 1", "issue 2"],
+              "hooks_valid": true/false,
+              "hooks_issues": ["issue 1", "issue 2"],
+              "skills_valid": true/false,
+              "skills_issues": ["issue 1", "issue 2"],
+              "all_valid": true/false,
+              "summary": "Brief overall summary"
+            }
+            ```
+
+            Set `all_valid` to true only if all changed files pass validation.
+            Set category to valid (true) if no changed files exist for that category.
+            Include specific file names and line numbers in issues when possible.
+          claude_args: |
+            --allowedTools "Read,Glob,Grep"
+            --json-schema '{"type":"object","properties":{"manifests_valid":{"type":"boolean"},"manifests_issues":{"type":"array","items":{"type":"string"}},"hooks_valid":{"type":"boolean"},"hooks_issues":{"type":"array","items":{"type":"string"}},"skills_valid":{"type":"boolean"},"skills_issues":{"type":"array","items":{"type":"string"}},"all_valid":{"type":"boolean"},"summary":{"type":"string"}},"required":["all_valid"]}'
+
+      - name: Check validation result
+        if: always() && steps.changed-files.outputs.has_changes == 'true' && steps.validate.outputs.structured_output != ''
+        env:
+          VALIDATION_OUTPUT: ${{ steps.validate.outputs.structured_output }}
+        run: |
+          {
+            echo "## Validation Results"
+            echo '```json'
+            echo "$VALIDATION_OUTPUT"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          # Validate JSON output before processing
+          if ! all_valid=$(echo "$VALIDATION_OUTPUT" | jq -r '.all_valid' 2>/dev/null); then
+            echo "Error: Invalid JSON output from validation step"
+            echo "Raw output:"
+            echo "$VALIDATION_OUTPUT"
+            exit 1
+          fi
+
+          if [ "$all_valid" != "true" ]; then
+            {
+              echo ""
+              echo "### Issues Found"
+              if [ "$(echo "$VALIDATION_OUTPUT" | jq -r '(.manifests_issues | length) // 0')" -gt 0 ]; then
+                echo "**Manifests:**"
+                echo "$VALIDATION_OUTPUT" | jq -r '.manifests_issues[] | "- " + .'
+              fi
+              if [ "$(echo "$VALIDATION_OUTPUT" | jq -r '(.hooks_issues | length) // 0')" -gt 0 ]; then
+                echo "**Hooks:**"
+                echo "$VALIDATION_OUTPUT" | jq -r '.hooks_issues[] | "- " + .'
+              fi
+              if [ "$(echo "$VALIDATION_OUTPUT" | jq -r '(.skills_issues | length) // 0')" -gt 0 ]; then
+                echo "**Skills:**"
+                echo "$VALIDATION_OUTPUT" | jq -r '.skills_issues[] | "- " + .'
+              fi
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo ""
+            echo "Plugin validation failed. Please fix the issues above."
+            exit 1
+          fi
+
+          {
+            echo ""
+            echo "All changed plugin files are valid."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Skip validation (no changes)
+        if: steps.changed-files.outputs.has_changes != 'true'
+        run: |
+          echo "## Validation Skipped" >> "$GITHUB_STEP_SUMMARY"
+          echo "No plugin files were changed in this PR." >> "$GITHUB_STEP_SUMMARY"

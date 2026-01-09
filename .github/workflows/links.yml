@@ -1,0 +1,53 @@
+name: Check Links
+
+# Checks all markdown files for broken links using lychee
+# Key flags:
+#   --cache: Cache results to speed up subsequent runs
+#   --exclude-link-local: Skip localhost/127.0.0.1 links (not reachable in CI)
+#   --exclude-file: Use .lycheeignore for links that shouldn't be checked (e.g., rate-limited sites)
+# Creates a GitHub issue on failure for visibility
+
+on:
+  pull_request:
+    paths:
+      - '**.md'
+  schedule:
+    - cron: '0 0 * * 0'  # Weekly on Sunday at midnight UTC
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  issues: write  # Required by gh issue create on failure
+
+jobs:
+  linkChecker:
+    name: Check Markdown Links
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Restore lychee cache
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: .lycheecache
+          key: cache-lychee-${{ github.sha }}
+          restore-keys: cache-lychee-
+
+      - name: Link Checker
+        uses: lycheeverse/lychee-action@f81112d0d2814ded911bd23e3beaa9dda9093915 # v2.3.0
+        with:
+          args: --cache --max-cache-age 1d --verbose --no-progress --exclude-link-local --exclude-file .lycheeignore '**/*.md'
+          fail: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Issue From File
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh issue create --title "Broken links detected" --body-file ./lychee/out.md

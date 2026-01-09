@@ -1,0 +1,35 @@
+name: Validate Workflows
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/**'
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  actionlint:
+    name: Lint GitHub Actions Workflows
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Run actionlint
+        uses: reviewdog/action-actionlint@dd41e40b0c402db556ce8f4743a4e47d15024f54 # v1.65.2
+        with:
+          fail_on_error: true
+          reporter: github-pr-review
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

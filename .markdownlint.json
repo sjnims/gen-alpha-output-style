@@ -1,4 +1,8 @@
 {
   "MD013": false,
+  "MD033": {
+    "allowed_elements": ["p", "img", "a", "br", "details", "summary"]
+  },
+  "MD041": false,
   "MD060": false
 }
