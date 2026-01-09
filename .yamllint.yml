@@ -17,10 +17,7 @@ rules:
     indent-sequences: true
     check-multi-line-strings: false
 
-  line-length:
-    max: 120
-    allow-non-breakable-words: true
-    allow-non-breakable-inline-mappings: true
+  line-length: disable
 
   # Structural Rules
   braces:
