@@ -33,14 +33,6 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Setup Node.js
-        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
-        with:
-          node-version: "20"
-
-      - name: Install markdownlint-cli
-        run: npm install -g markdownlint-cli
-
       - name: Review PR with Claude
         uses: anthropics/claude-code-action@1b8ee3b94104046d71fde52ec3557651ad8c0d71 # v1.0.29
         with:
@@ -56,7 +48,7 @@ jobs:
 
             ## Instructions
             1. Get the PR diff to understand what changed
-            2. If any `.md` files were changed, run `markdownlint --config .markdownlint.json <files>` to check for style issues
+            2. If any `.md` files were changed, run `npx markdownlint-cli2 <files>` to check for style issues
             3. Review the changes against the criteria below
             4. Post a summary comment with your findings
 
@@ -75,7 +67,7 @@ jobs:
             - New terms should fit the transformation use case
 
             ### Markdown Quality (run markdownlint)
-            Run `markdownlint --config .markdownlint.json` on changed `.md` files. Key rules enforced:
+            Run `npx markdownlint-cli2` on changed `.md` files. Key rules enforced:
             - ATX-style headers (`#` not underlines)
             - Dash-style lists (`-` not `*` or `+`)
             - 2-space indentation for nested lists
@@ -101,4 +93,4 @@ jobs:
             Be constructive and helpful. Focus on significant issues, not nitpicks.
             If the PR looks good, say so briefly - don't invent problems.
           claude_args: |
-            --allowedTools "Bash(gh pr:*),Bash(markdownlint:*),Read,Glob,Grep,mcp__github_inline_comment__create_inline_comment"
+            --allowedTools "Bash(gh pr:*),Bash(npx markdownlint-cli2:*),Read,Glob,Grep,mcp__github_inline_comment__create_inline_comment"
