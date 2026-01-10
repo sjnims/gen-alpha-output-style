@@ -51,11 +51,6 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Setup Node.js
-        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
-        with:
-          node-version: "20"
-
       - name: Run Claude Code
         id: claude
         uses: anthropics/claude-code-action@1b8ee3b94104046d71fde52ec3557651ad8c0d71 # v1.0.29
