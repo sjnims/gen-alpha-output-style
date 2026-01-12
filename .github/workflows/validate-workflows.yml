@@ -3,12 +3,12 @@ name: Validate Workflows
 on:
   pull_request:
     paths:
-      - '.github/workflows/**'
+      - ".github/workflows/**"
   push:
     branches:
       - main
     paths:
-      - '.github/workflows/**'
+      - ".github/workflows/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -16,20 +16,19 @@ concurrency:
 
 permissions:
   contents: read
-  pull-requests: write
+  pull-requests: write # Required for reviewdog PR comments
 
 jobs:
   actionlint:
     name: Lint GitHub Actions Workflows
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Run actionlint
+      - name: Run actionlint with reviewdog
         uses: reviewdog/action-actionlint@83e4ed25b168066ad8f62f5afbb29ebd8641d982 # v1.69.1
         with:
-          fail_on_error: true
           reporter: github-pr-review
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          fail_level: error
